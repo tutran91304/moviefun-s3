@@ -28,8 +28,14 @@ public class S3Store implements BlobStore {
     @Override
     public void put(Blob blob) throws IOException {
 
-        ObjectMetadata metadata = getObjectMetaData(blob);
-        // Upload a file as a new object with ContentType and title specified.
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentType(blob.contentType);
+
+        byte[] bytes = IOUtils.toByteArray(blob.inputStream);
+        metadata.setContentLength(bytes.length);
+
+        // Create new object because reading blob's inputstream will advance its cursor
+        blob = new Blob(blob.name, new ByteArrayInputStream(bytes), blob.contentType);
         PutObjectRequest request = new PutObjectRequest(photoStorageBucket, blob.name, blob.inputStream, metadata);
         s3Client.putObject(request);
     }
@@ -37,18 +43,6 @@ public class S3Store implements BlobStore {
     private File getCoverFile(String albumId) {
         String coverFileName = format("covers/%s", albumId);
         return new File(coverFileName);
-    }
-
-    private ObjectMetadata getObjectMetaData(Blob blob) throws IOException {
-
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentType(blob.contentType);
-
-        byte[] bytes = IOUtils.toByteArray(blob.inputStream);
-        metadata.setContentLength(bytes.length);
-        blob.inputStream.reset();
-
-        return metadata;
     }
 
     @Override
