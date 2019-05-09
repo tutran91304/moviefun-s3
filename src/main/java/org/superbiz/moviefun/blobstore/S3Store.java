@@ -45,6 +45,7 @@ public class S3Store implements BlobStore {
         return new File(coverFileName);
     }
 
+
     @Override
     public Optional<Blob> get(String name) throws IOException {
         try {
